@@ -32,7 +32,7 @@ class Settings:
 
 def load_settings() -> Settings:
     """Carrega, valida e centraliza as variáveis de ambiente."""
-    load_dotenv()
+    load_dotenv(encoding="utf-8-sig")
 
     # Validação de variáveis obrigatórias
     required_vars = [
@@ -74,7 +74,7 @@ def normalize_phone(phone: Any) -> str:
 
 def build_message(name: str) -> str:
     """Gera o texto personalizado da mensagem para o cliente."""
-    return f"Olá, {name}. Tudo bem com você?"
+    return f"Ol\u00e1, {name}. Tudo bem com voc\u00ea?"
 
 
 def fetch_contacts(

@@ -3,3 +3,7 @@
 
 #Pasta de logs
 logs/
+
+#Cache
+__pycache__/
+*.pyc
