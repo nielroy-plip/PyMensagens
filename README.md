@@ -1,69 +1,63 @@
-# Envio de WhatsApp com Supabase + Z-API
+# Envio de WhatsApp (Supabase + Z-API)
 
-Busca pessoas cadastradas no Supabase e envia pelo WhatsApp:
+Script em Python para automação de disparos de mensagens personalizadas via Z-API utilizando uma base de contatos armazenada no Supabase.
 
-```text
-Olá, <nome_contato>. Tudo bem com você?
-```
+---
 
-## Configuração
+## 1. Setup da Tabela (Supabase)
 
-1. Crie e ative um ambiente virtual:
+A tabela no Supabase (nome padrão: `pessoas`) precisa conter, no mínimo, as seguintes colunas:
+* **nome_contato**: Texto com o nome do cliente (usado na personalização).
+* **telefone**: Texto contendo apenas números no formato **DDI + DDD + Número** (Exemplo: `5511999999999`).
 
-```powershell
-python -m venv .venv
-.\.venv\Scripts\Activate.ps1
-```
+---
 
-2. Instale as dependências:
+## 2. Variáveis de Ambiente (`.env`)
 
-```powershell
+Crie um arquivo chamado `.env` na raiz do projeto e configure as credenciais abaixo:
+
+```env
+# Credenciais Obrigatórias
+SUPABASE_URL=sua_url_do_supabase
+SUPABASE_KEY=sua_chave_do_supabase
+ZAPI_INSTANCE_ID=seu_id_da_instancia_zapi
+ZAPI_INSTANCE_TOKEN=seu_token_da_instancia_zapi
+ZAPI_CLIENT_TOKEN=seu_client_token_da_zapi
+
+# Configurações Opcionais (Valores padrão abaixo se omitidos)
+SUPABASE_TABLE=pessoas
+SUPABASE_NAME_COLUMN=nome_contato
+SUPABASE_PHONE_COLUMN=telefone
+SEND_INTERVAL_SECONDS=1.0
+LOG_DIR=logs
+
+---
+
+## 3. Como executar
+
+# Instalar dependências
 pip install -r requirements.txt
-```
 
-3. Copie `.env.example` para `.env` e preencha suas credenciais.
-
-No Supabase, a tabela configurada em `SUPABASE_TABLE` precisa ter pelo menos:
-
-- uma coluna de nome, por padrão `nome_contato`
-- uma coluna de telefone, por padrão `telefone`
-
-O telefone deve ser enviado para a Z-API somente com números, no formato DDI + DDD + número. Exemplo: `5511999999999`.
-
-## Uso
-
-Para testar sem enviar mensagens:
-
-```powershell
+# --- MODO SIMULAÇÃO (DRY-RUN) ---
+# Apenas testa a busca e exibe as mensagens no terminal sem enviar de verdade
 python main.py --dry-run
-```
 
-Para enviar de verdade:
-
-```powershell
+# --- MODO ENVIO REAL ---
+# Dispara as mensagens oficiais para o WhatsApp dos clientes
 python main.py --send
-```
 
-Durante a execução, o script mostra logs no terminal em tempo real e também salva tudo em um arquivo dentro da pasta `logs`.
-
-Exemplo de arquivo gerado:
-
-```text
-logs/envio_whatsapp_20260616_162500.log
-```
-
-Se uma mensagem falhar, o envio continua para os próximos contatos e o erro fica registrado no log com o telefone, nome e resposta retornada pela Z-API.
-
-Também dá para limitar a quantidade:
-
-```powershell
+# --- EXEMPLOS COM FILTROS E LIMITES ---
+# Limita a execução para apenas os 5 primeiros contatos encontrados
 python main.py --dry-run --limit 5
-```
 
-## Filtro opcional
-
-Se quiser buscar só pessoas ainda não contatadas, você pode adicionar um filtro simples:
-
-```powershell
+# Filtra contatos (Ex: busca apenas registros onde a coluna 'mensagem_enviada' seja 'false')
 python main.py --dry-run --filter-column mensagem_enviada --filter-value false
-```
+
+# Combinando tudo (Envio real, limitado a 10 contatos e filtrando por status)
+python main.py --send --limit 10 --filter-column status_ativo --filter-value true
+
+--
+
+## 4. Observações do código
+
+#Validação de Telefone: O script possui um filtro automático de comprimento. Para o padrão nacional, o número precisa ter exatamente 12 ou 13 dígitos (DDI 55 + DDD + Número). Se o telefone no banco estiver incompleto ou incorreto, o script vai registrá-lo como IGNORADO no log e pulará para o próximo contato, economizando requisições e créditos na Z-API.

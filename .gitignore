@@ -1,3 +1,5 @@
 #Variáveis de ambiente
 .env
-.env.example
+
+#Pasta de logs
+logs/
